@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getNotes } = require('../controllers/noteController');
 const { protect } = require('../middleware/authMiddleware');
-const Note = require('../models/note'); // Ensure the case matches your filename
+const Note = require('../models/Note'); // Ensure the case matches your filename
 const upload = require('../config/cloudinary'); // Multer-Cloudinary config import karein
 
 // 1. GET route: Saare notes fetch karne ke liye (Sabke liye open)

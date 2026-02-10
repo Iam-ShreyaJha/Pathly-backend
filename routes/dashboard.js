@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Note = require('../models/note'); // Model case check kar lein (Note vs note)
+const Note = require('../models/Note'); // Model case check kar lein (Note vs note)
 const Event = require('../models/Event'); // Ise import karna zaroori hai
 const { protect } = require('../middleware/authMiddleware');
 
