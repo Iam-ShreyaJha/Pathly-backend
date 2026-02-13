@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getNotes } = require('../controllers/noteController');
+const { getNotes, createNote, deleteNote } = require('../controllers/noteController');
 const { protect, admin } = require('../middleware/authMiddleware'); // admin middleware zaroori hai delete ke liye
 const Note = require('../models/Note'); 
 const upload = require('../config/cloudinary'); 
