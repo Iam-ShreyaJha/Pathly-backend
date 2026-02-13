@@ -4,14 +4,13 @@ const Note = require('../models/Note');
 // @route   GET /api/notes
 exports.getNotes = async (req, res) => {
   try {
-    const { semester, subject, year, isSyllabus } = req.query;
-    
+    const { semester, subject } = req.query;
     let queryObj = {};
+    
     if (semester) queryObj.semester = semester;
-    if (year) queryObj.year = year;
-    if (isSyllabus) queryObj.isSyllabus = isSyllabus === 'true';
     if (subject) queryObj.subject = { $regex: subject, $options: 'i' }; 
 
+    // Notes ko latest first (newest to oldest) sort karke laana
     const notes = await Note.find(queryObj).sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -28,13 +27,16 @@ exports.getNotes = async (req, res) => {
 // @route   POST /api/notes
 exports.createNote = async (req, res) => {
   try {
-    // Note: 'link' Cloudinary se aata hai jo middleware handle karta hai
+    // Note: User ID hum protect middleware se nikaalte hain
     const note = await Note.create({
       ...req.body,
       user: req.user.id
     });
 
-    res.status(201).json({ success: true, data: note });
+    res.status(201).json({
+      success: true,
+      data: note
+    });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
@@ -47,9 +49,13 @@ exports.deleteNote = async (req, res) => {
     const note = await Note.findById(req.params.id);
 
     if (!note) {
-      return res.status(404).json({ success: false, error: 'Note not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'Note not found'
+      });
     }
 
+    // Note ko database se remove karna
     await note.deleteOne();
 
     res.status(200).json({
