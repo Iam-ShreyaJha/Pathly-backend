@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware'); // admin middleware add kiya
 
 // 1. Saare events dekhne ke liye (GET) - Sabke liye open
 router.get('/', async (req, res) => {
   try {
-    // Upcoming events ko pehle dikhane ke liye date: 1 (Ascending) rakha hai
+    // Upcoming events ko pehle dikhane ke liye sort
     const events = await Event.find().sort({ date: 1 });
     res.status(200).json({ success: true, data: events });
   } catch (error) {
@@ -14,10 +14,9 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 2. Naya event daalne ke liye (POST) - Sirf Admin/Logged-in user
-router.post('/', protect, async (req, res) => {
+// 2. Naya event daalne ke liye (POST) - Sirf Admin
+router.post('/', protect, admin, async (req, res) => {
   try {
-    // req.body mein title, description, date aur category honi chahiye
     const { title, description, date, category, link } = req.body;
 
     const newEvent = await Event.create({
@@ -26,7 +25,7 @@ router.post('/', protect, async (req, res) => {
       date,
       category,
       link,
-      user: req.user.id // Event create karne wale ki ID save karein
+      user: req.user.id 
     });
 
     res.status(201).json({ 
@@ -36,6 +35,26 @@ router.post('/', protect, async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// 3. Event delete karne ke liye (DELETE) - Sirf Admin
+router.delete('/:id', protect, admin, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({ success: false, error: "Event not found" });
+    }
+
+    await event.deleteOne();
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Event removed successfully" 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

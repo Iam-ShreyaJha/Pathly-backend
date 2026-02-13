@@ -4,15 +4,16 @@ const EventSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'Please add an event title'],
+    trim: true
   },
   description: {
     type: String,
-    required: [false],
+    required: false,
   },
- category: {
+  category: {
     type: String,
-    required: true,
-    // Yahan 'Tech Event' ko exactly waise hi likhein jaisa dropdown mein hai
+    required: [true, 'Please select a category'],
+    // Ye categories exactly wahi hain jo tumne Admin Dashboard dropdown mein rakhi hain
     enum: ["Hackathon", "Tech Event", "Workshop", "Webinar", "Exhibition", "Conference", "Cultural Fest"]
   },
   date: {
@@ -20,14 +21,19 @@ const EventSchema = new mongoose.Schema({
     required: [true, 'Please add event date'],
   },
   link: {
-    type: String, // Event register link or news source link
-    required: [true, 'Please add a link'],
+    type: String, 
+    required: [true, 'Please add a registration or source link'],
+  },
+  // Admin jisne ye post kiya hai
+  user: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User',
+    required: true 
   },
   createdAt: {
     type: Date,
     default: Date.now,
-  },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  }
 });
 
 module.exports = mongoose.model('Event', EventSchema);

@@ -8,17 +8,28 @@ const NoteSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: [false]
+    required: false
   },
   subject: {
     type: String,
     required: [true, 'Please add a subject']
   },
+  // Naya Structure: Semester ko Number rakha hai filtering ke liye
   semester: {
-    type: String,
+    type: Number, 
     required: [true, 'Please add a semester']
   },
-  // Is field ka naam 'link' rakhein taaki routes se match ho
+  // NAYE FIELDS ADDED BELOW
+  year: {
+    type: String,
+    required: [true, 'Please specify the year'],
+    enum: ['1st Year', '2nd Year', '3rd Year', '4th Year']
+  },
+  isSyllabus: {
+    type: Boolean,
+    default: false
+  },
+  // Link stays the same for Cloudinary URL
   link: {
     type: String,
     required: [true, 'File upload failed, no link generated']

@@ -1,42 +1,63 @@
 const express = require('express');
 const router = express.Router();
 const { getNotes } = require('../controllers/noteController');
-const { protect } = require('../middleware/authMiddleware');
-const Note = require('../models/Note'); // Ensure the case matches your filename
-const upload = require('../config/cloudinary'); // Multer-Cloudinary config import karein
+const { protect, admin } = require('../middleware/authMiddleware'); // admin middleware zaroori hai delete ke liye
+const Note = require('../models/Note'); 
+const upload = require('../config/cloudinary'); 
 
-// 1. GET route: Saare notes fetch karne ke liye (Sabke liye open)
+// 1. GET route: Saare notes fetch karne ke liye
 router.get('/', getNotes);
 
-// 2. POST route: Naya note with PDF/Image upload (Sirf logged-in users ke liye)
-// 'file' wahi naam hona chahiye jo aap frontend ke FormData mein append karengi
+// 2. POST route: Naya note with PDF upload (Protect + Role checks)
 router.post('/', protect, upload.single('file'), async (req, res) => {
   try {
-    const { title, description, subject, semester } = req.body;
+    const { title, description, subject, semester, year, isSyllabus } = req.body;
 
-    // Check karein ki file upload hui hai ya nahi
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'Please upload a file' });
     }
 
-    // Naya note create karein jisme 'link' ki jagah Cloudinary URL store ho
     const newNote = await Note.create({
       title,
       description,
       subject,
       semester,
-      link: req.file.path, // Ye Cloudinary ka permanent URL hai
-      user: req.user.id     // Note ko upload karne wale user se link karein
+      year, // Naya field: 1st Year, 2nd Year, etc.
+      isSyllabus: isSyllabus === 'true' || isSyllabus === true, // Checkbox se string 'true' aa sakti hai
+      link: req.file.path, 
+      user: req.user.id 
     });
 
     res.status(201).json({ 
       success: true, 
-      message: 'File uploaded to Cloudinary successfully!',
+      message: 'Note uploaded successfully!',
       data: newNote 
     });
 
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// 3. DELETE route: Note remove karne ke liye (Sirf Admin kar sakta hai)
+router.delete('/:id', protect, admin, async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+
+    if (!note) {
+      return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    // Delete the note from database
+    await note.deleteOne();
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Note removed successfully' 
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
